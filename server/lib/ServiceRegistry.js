@@ -4,7 +4,7 @@ export default class ServiceRegistry {
   constructor(log) {
     this.log = log;
     this.services = {};
-    this.timeout = 15;
+    this.timeout = 30;
   }
 
   get({ name, version }) {
@@ -60,5 +60,5 @@ export default class ServiceRegistry {
  * in order to monitor service availability.
  *
  * So, there should be a cleanup function that frequently check for any service not noticed
- * after expected ping interval i.e likely shut down services and deregister them.
+ * after expected heartbeat interval i.e likely shut down services and deregister them.
  */
