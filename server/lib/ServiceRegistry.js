@@ -39,7 +39,10 @@ export default class ServiceRegistry {
 
   unregister({ name, version, ip, port }) {
     const key = name + version + ip + port;
-    if (this.services[key]) delete this.services[key];
+    if (this.services[key]) {
+      delete this.services[key];
+      this.log.debug(`Removed service ${name}, version ${version} at ${ip}:${port}`);
+    }
     return key;
   }
 
