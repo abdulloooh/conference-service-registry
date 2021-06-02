@@ -13,7 +13,17 @@ export default class ServiceRegistry {
       (service) => service.name === name && satisfies(service.version, version)
     );
 
-    return candidates[Math.floor(Math.random() * candidates.length)];
+    const activeCandidates = candidates.filter(service=>service.active) 
+    let selected = activeCandidates[Math.floor(Math.random() * activeCandidates.length)];
+
+    if(!selected) selected = candidates[Math.floor(Math.random() * candidates.length)];
+    
+    return selected
+
+    /*
+      I honestly dont see a cache concern as a valid concern for selecting passive services 
+      but priority has been given to the active ones anyways, so loss and perhaps small unlikely gain
+    */
   }
 
   register({ name, version, ip, port }) {
@@ -26,6 +36,7 @@ export default class ServiceRegistry {
         version,
         ip,
         port,
+        active: true,
         timestamp: Math.floor(new Date() / 1000),
       };
       this.log.debug(`Added service ${name}, version ${version} at ${ip}:${port}`);
@@ -40,8 +51,10 @@ export default class ServiceRegistry {
   unregister({ name, version, ip, port }) {
     const key = name + version + ip + port;
     if (this.services[key]) {
-      delete this.services[key];
-      this.log.debug(`Removed service ${name}, version ${version} at ${ip}:${port}`);
+      // delete this.services[key];
+      // this.log.debug(`Removed service ${name}, version ${version} at ${ip}:${port}`);
+      this.services[key].active = false
+      this.log.debug(`Service ${name}, version ${version} at ${ip}:${port} went down`);
     }
     return key;
   }
@@ -50,9 +63,11 @@ export default class ServiceRegistry {
     const now = Math.floor(new Date() / 1000);
 
     Object.keys(this.services).map((key) => {
-      if (this.services[key].timestamp + this.timeout < now) {
-        delete this.services[key];
-        this.log.debug(`Removed service ${key}`);
+      if (this.services[key].active && this.services[key].timestamp + this.timeout < now) {
+        // delete this.services[key];
+        // this.log.debug(`Removed service ${key}`);
+        this.services[key].active = false
+        this.log.debug(`Service ${key} went down`);
       }
     });
   }
@@ -65,3 +80,8 @@ export default class ServiceRegistry {
  * So, there should be a cleanup function that frequently check for any service not noticed
  * after expected heartbeat interval i.e likely shut down services and deregister them.
  */
+
+/*
+ Dont remover service permanently but rather make then inactive.
+ Reason: Discoverability; their ip&port still need to be discovered so corresonding cache can be queried on the main App
+*/
