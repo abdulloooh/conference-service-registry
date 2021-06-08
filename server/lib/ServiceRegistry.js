@@ -13,16 +13,17 @@ export default class ServiceRegistry {
       (service) => service.name === name && satisfies(service.version, version)
     );
 
-    const activeCandidates = candidates.filter(service=>service.active) 
+    const activeCandidates = candidates.filter((service) => service.active);
     let selected = activeCandidates[Math.floor(Math.random() * activeCandidates.length)];
 
-    if(!selected) selected = candidates[Math.floor(Math.random() * candidates.length)];
-    
-    return selected
+    if (!selected) selected = candidates[Math.floor(Math.random() * candidates.length)];
+
+    return selected;
 
     /*
-      I honestly dont see a cache concern as a valid concern for selecting passive services 
-      but priority has been given to the active ones anyways, so loss and perhaps small unlikely gain
+      I honestly dont see caching concern (on the main App) as a valid concern for selecting passive 
+      services details in the absence of all active one for main App to be able to at least fetch its cache 
+      Anyways, priority has been given to the active ones, so no loss and perhaps small gain in resiliency
     */
   }
 
@@ -53,7 +54,7 @@ export default class ServiceRegistry {
     if (this.services[key]) {
       // delete this.services[key];
       // this.log.debug(`Removed service ${name}, version ${version} at ${ip}:${port}`);
-      this.services[key].active = false
+      this.services[key].active = false;
       this.log.debug(`Service ${name}, version ${version} at ${ip}:${port} went down`);
     }
     return key;
@@ -66,7 +67,7 @@ export default class ServiceRegistry {
       if (this.services[key].active && this.services[key].timestamp + this.timeout < now) {
         // delete this.services[key];
         // this.log.debug(`Removed service ${key}`);
-        this.services[key].active = false
+        this.services[key].active = false;
         this.log.debug(`Service ${key} went down`);
       }
     });
@@ -82,6 +83,6 @@ export default class ServiceRegistry {
  */
 
 /*
- Dont remover service permanently but rather make then inactive.
+ Dont remove service permanently but rather make them inactive 
  Reason: Discoverability; their ip&port still need to be discovered so corresonding cache can be queried on the main App
 */
